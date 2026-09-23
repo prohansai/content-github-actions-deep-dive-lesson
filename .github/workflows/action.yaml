@@ -46,7 +46,7 @@ jobs:
               aws-secret=acccess-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
               aws-region: ap-south-2
           - name: upload artifact to s3
-            run: aws s3 cp ${{ github.sha }}.zip s3://my-bucket-347239ufj23iwe/${{ github.sha }.zip
+            run: aws s3 cp ${{ github.sha }}.zip s3://my-bucket-347239ufj23iwe/${{ github.sha }}.zip
             
               
 
