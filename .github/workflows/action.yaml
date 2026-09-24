@@ -103,21 +103,31 @@ jobs:
             --code S3Bucket=my-bucket-347239ufj23iwe,S3Key=${{ github.sha }}.zip \
             --handler lambda_function.lambda_handler --runtime python3.14 \
             --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/my-lambda-role
+
+      - name: wait for function to be active
+        run: |
+          aws lambda wait function-active-v2 \
+            --function-name test-function-${{ matrix.input }}
+
       - name: invoke test function
         run: |
-            aws lambda invoke --function-name test-function-${{ matrix.input }} \
-            --payload $(echo "{\"input\": \"${{ matrix.input }}\"}" | base64) \
-            --output json out
-            if grep -q "Error" out; then
-              exit1
-            fi
-            
-      - name: wait 30 seconds
-        run: sleep 30
+          RESPONSE=$(aws lambda invoke \
+            --function-name test-function-${{ matrix.input }} \
+            --cli-binary-format raw-in-base64-out \
+            --payload "{\"input\": \"${{ matrix.input }}\"}" \
+            --output json out)
+          echo "Invoke response: $RESPONSE"
+          echo "Function output:"
+          cat out
+          if echo "$RESPONSE" | grep -q "FunctionError"; then
+            echo "Lambda returned a function error"
+            exit 1
+          fi
 
       - name: destroy test function
         if: ${{ always() }}
         run: aws lambda delete-function --function-name test-function-${{ matrix.input }}
+
 
   deploy:
     runs-on: ubuntu-latest
