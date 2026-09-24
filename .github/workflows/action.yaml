@@ -39,8 +39,15 @@ jobs:
         run: |
           cd function
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt -t .; fi
-
+          if [ -f requirements.txt ]; then \
+            pip install \
+              --platform manylinux2014_x86_64 \
+              --target . \
+              --implementation cp \
+              --python-version 3.8 \
+              --only-binary=:all: \
+              -r requirements.txt; \
+          fi
       - name: create a zip bundle
         run: |
           cd function
